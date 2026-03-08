@@ -16,7 +16,7 @@ A Retrieval-Augmented Generation (RAG) application that allows users to upload P
 ### Installation
 1. Clone & Environment Setup
 ```{bash}
-git clone <your-repo-url>
+git clone https://github.com/eliotjmartin/ai_pdf_assistant.git
 cd llm-rag-lab
 python -m venv myenv
 myenv\Scripts\activate  
@@ -27,24 +27,21 @@ pip install --upgrade pip
 pip install gradio python-dotenv pinecone langchain-openai langchain-pinecone langchain-text-splitters langchain-community pypdf openai
 ```
 
-NOTE: Known Installation Issue: Greenlet / C++ Error
+Known Installation Issue: Greenlet / C++ Error
 If you are on Windows using Python 3.9, the installation of langchain-community may fail while building the greenlet wheel with a "Microsoft Visual C++ 14.0 or greater is required" error.
 
-I fixed this by installing full Microsoft C++ Build Tools (Click [here](https://visualstudio.microsoft.com/visual-cpp-build-tools/) to view build tools). To fix this without installing the full Build Tools, you may try:
-```{bash}
-pip install --only-binary :all: greenlet
-``` 
-before running the main installation command.
+I fixed this by installing full Microsoft C++ Build Tools (Click [here](https://visualstudio.microsoft.com/visual-cpp-build-tools/) to view build tools). 
 
 3. Environment Variables
-Create a .env file in the root directory:
 
-Code snippet
+Create a .env file in the root directory:
+```
 OPENAI_API_KEY=your_openai_key
 PINECONE_API_KEY=your_pinecone_key
 PINECONE_INDEX=rag-pdf-demo
 PINECONE_ENV=us-east-1
 OPENAI_MODEL=gpt-4o-mini
+```
 
 ### Usage
 Start the app:
