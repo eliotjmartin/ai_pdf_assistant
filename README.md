@@ -56,3 +56,4 @@ python app/gradio_demo.py
 - app/gradio_demo.py: Main entry point and user interface
 - src/ingest.py: Logic for PDF processing and vector database upserting
 - src/retrieve_and_answer.py: Logic for context retrieval and LLM response generation
+- src/prompts.py: Central location for all prompts used in the RAG system
