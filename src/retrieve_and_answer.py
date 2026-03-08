@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
+from src.prompts import SYSTEM_PROMPT, RETRIEVAL_PROMPT_TEMPLATE
 
 INDEX_NAME = os.getenv("PINECONE_INDEX")  # the name of the database
 MODEL_NAME = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -23,15 +24,19 @@ def retrieve_and_answer(question: str):
         (d.metadata.get("source", "Unknown"), d.metadata.get("page", "Unknown"))
         for d in docs
     ))
+    
+    # .format() replaces placeholders with below values
+    prompt = RETRIEVAL_PROMPT_TEMPLATE.format(
+        context=context_text,
+        question=question
+    )
 
-    # send context to the LLM to write a human answer
+    # call openai's chat completions API to write a human answer
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
-            # tell the LLM it must stay within the provided context (prevent hallucination)
-            {"role": "system", "content": "You are a helpful assistant. Use the provided context to answer questions. If the answer isn't in the context, say you don't know."},
-            # send the extracted text and the original question to the LLM
-            {"role": "user", "content": f"Context:\n{context_text}\n\nQuestion: {question}"}
+            {"role": "system", "content": SYSTEM_PROMPT}, # define behavior rules
+            {"role": "user", "content": prompt}  # the actual task
         ],
         temperature=0 # sets the "creativity" level. setting to zero ensures factual, consistent answers
     )
