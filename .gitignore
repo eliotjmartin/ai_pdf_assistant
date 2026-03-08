@@ -1,0 +1,7 @@
+.env
+venv/
+myenv/
+data/raw
+src/__pycache__
+app/__pycache__
+data/
