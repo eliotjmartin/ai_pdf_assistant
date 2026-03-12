@@ -43,7 +43,7 @@ OPENAI_MODEL=gpt-4o-mini
 Start the app:
 
 ```{bash}
-python app/gradio_demo.py
+python app/app.py
 ```
 - Ingest: Navigate to the "Setup" tab and upload your PDF.
 - Chat: Switch to the "Ask Questions" tab and query your document.
