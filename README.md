@@ -1,5 +1,5 @@
 # AI PDF Assistant 
-A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. The system enforces strict grounding, instructing the model to rely only on the retrieved text and to explicitly state if it does not know the answer.
+A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. The system is restricted to using only the retrieved text chunks to answer questions. If the required information is not present in the provided PDF, the system will state it does not know the answer.
 
 ### Features
 - Document Ingestion: Extracts text and retains page-level metadata from uploaded files using PyPDFLoader.
