@@ -1,30 +1,26 @@
 # AI PDF Assistant 
-A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. 
+A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. The system enforces strict grounding, instructing the model to rely only on the retrieved text and to explicitly state if it does not know the answer.
 
 ### Features
-- Ingestion: Uses PyPDFLoader for page-level metadata and tiktoken for token-based chunking.
-- Vector Search: Integrated with Pinecone for low-latency similarity searching.
-- LLM Integration: Powered by OpenAI's gpt-4o-mini for cost-effective, intelligent responses.
-- Web UI: A clean, two-tab interface built with Gradio
-
-### Tech Stack
-- Language: Python 3.9+
-- Frameworks: LangChain, Gradio
-- Database: Pinecone 
-- Models: text-embedding-3-small (Embeddings), gpt-4o-mini (Chat)
+- Document Ingestion: Extracts text and retains page-level metadata from uploaded files using PyPDFLoader.
+- Token-Based Chunking: Splits text into 600-token chunks with a 150-token overlap using the gpt-4o tiktoken encoder to prevent information loss at chunk boundaries.
+- Vector Search: Generates embeddings via OpenAI's text-embedding-3-small and stores them in a Pinecone Serverless index using cosine similarity.
+- Strict Generation: Retrieves the 4 most relevant text chunks and generates answers using gpt-4o-mini with a temperature of 0 for highly factual, consistent outputs.
+- Source Attribution: Automatically formats and returns the exact source filename and 1-indexed page number alongside the answer so users can verify claims.
+- Web UI: Provides a straightforward, two-tab Gradio interface that separates the document ingestion setup from the querying environment.
 
 ### Installation
-1. Clone & Environment Setup
+1. Clone and Environment Setup
 ```{bash}
 git clone https://github.com/eliotjmartin/ai_pdf_assistant.git
-cd llm-rag-lab
+cd pdf_ai_assistant
 python -m venv myenv
 myenv\Scripts\activate  
 ```
 2. Install Dependencies
 ```{bash}
 pip install --upgrade pip
-pip install gradio python-dotenv pinecone langchain-openai langchain-pinecone langchain-text-splitters langchain-community pypdf openai
+pip install -r requirements.txt
 ```
 
 Known Installation Issue: Greenlet / C++ Error
