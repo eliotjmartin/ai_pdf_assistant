@@ -1,9 +1,6 @@
 # AI PDF Assistant 
 A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. The system is restricted to using only the retrieved text chunks to answer questions. If the required information is not present in the provided PDF, the system will state it does not know the answer.
 
-### Demo Video
-https://github.com/eliotjmartin/ai_pdf_assistant/blob/main/demo_video/demo.mp4
-
 ### Features
 - Document Ingestion: Extracts text and retains page-level metadata from uploaded files using PyPDFLoader.
 - Token-Based Chunking: Splits text into 600-token chunks with a 150-token overlap using the gpt-4o tiktoken encoder to prevent information loss at chunk boundaries.
