@@ -1,15 +1,10 @@
 # AI PDF Assistant 
 This application transforms static PDFs into an interactive and trustworthy knowledge base. Instead of relying on general AI knowledge, the AI's responses are are generated from the content of the user's uploaded PDF files. To build user confidence, the system scores the generated answer for accuracy and relevance.
 
-<figure>
-  <img src="images/ingestion.png" alt="Ingestion Page">
-  <figcaption align="center">PDF ingestion page</figcaption>
-</figure>
-
-<figure>
-  <img src="images/answer.png" alt="Demo of querying">
-  <figcaption align="center">Interactive PDF querying and answer evaluation page</figcaption>
-</figure>
+| Phase | Application Interface |
+| :--- | :--- |
+| **1. Ingestion** | <img src="images/ingestion.png" width="600" alt="Ingestion Page"><br>The document processing setup. This stage handles PDF loading, token-based chunking, and Pinecone vector indexing. |
+| **2. Evaluation** | <img src="images/answer.png" width="600" alt="Querying and Evaluation"><br>The interactive Q&A interface. This view displays the AI's answer, retrieved sources, and real-time Ragas scores (Faithfulness and Relevancy). |
 
 ### Features
 - Document Ingestion: Extracts text and retains page-level metadata from uploaded files using PyPDFLoader.
