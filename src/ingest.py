@@ -2,9 +2,12 @@ import os
 from pathlib import Path
 from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import OpenAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader 
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_pinecone import PineconeVectorStore
+from dotenv import load_dotenv
+
+load_dotenv()
 
 INDEX_NAME = os.getenv("PINECONE_INDEX")  # the name of the database
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) # pinecone client
@@ -16,12 +19,15 @@ if not pc.has_index(INDEX_NAME):
         name=INDEX_NAME,
         dimension=1536, # size of each vector stored in the index
         metric="cosine",  # how similarity between vectors is calculated
-        spec=ServerlessSpec(cloud=os.getenv("PINECONE_CLOUD"), region=os.getenv("PINECONE_ENV"))
+        spec=ServerlessSpec(
+            cloud=os.getenv("PINECONE_CLOUD", "aws"), 
+            region=os.getenv("PINECONE_ENV", "us-east-1")
+        )
     )
-
+    
 # object that can convert text into embeddings
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-
+    
 def ingest_pdf(file_path):
     """
     - file_path: path to pdf
@@ -54,3 +60,4 @@ def ingest_pdf(file_path):
     )
     
     return f"Successfully ingested {len(chunks)} chunks from {Path(file_path).name}"
+

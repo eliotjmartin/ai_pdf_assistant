@@ -1,7 +1,15 @@
 # AI PDF Assistant 
-A Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and engage in a factual Q&A session with the content. The system is restricted to using only the retrieved text chunks to answer questions. If the required information is not present in the provided PDF, the system will state it does not know the answer.
+This application transforms static PDFs into an interactive and trustworthy knowledge base. Instead of relying on general AI knowledge, the AI's responses are are generated from the content of the user's uploaded PDF files. To build user confidence, the system scores the generated answer for accuracy and relevance.
 
-![Demo of querying](images/demo.gif)
+<figure>
+  <img src="images/ingestion.png" alt="Ingestion Page">
+  <figcaption align="center">PDF ingestion page</figcaption>
+</figure>
+
+<figure>
+  <img src="images/answer.png" alt="Demo of querying">
+  <figcaption align="center">Interactive PDF querying and answer evaluation page</figcaption>
+</figure>
 
 ### Features
 - Document Ingestion: Extracts text and retains page-level metadata from uploaded files using PyPDFLoader.
@@ -9,9 +17,12 @@ A Retrieval-Augmented Generation (RAG) application that allows users to upload P
 - Vector Search: Generates embeddings via OpenAI's text-embedding-3-small and stores them in a Pinecone Serverless index using cosine similarity.
 - Strict Generation: Retrieves the 4 most relevant text chunks and generates answers using gpt-4o-mini with a temperature of 0 for highly factual, consistent outputs.
 - Source Attribution: Automatically formats and returns the exact source filename and 1-indexed page number alongside the answer so users can verify claims.
+- Automated Evaluation: Integrated the Ragas framework to provide real-time, reference-free evaluation of every response. The system uses an "LLM-as-a-judge" approach to calculate Faithfulness (detecting hallucinations) and Answer Relevancy (ensuring the query is addressed) directly within the UI.
 - Web UI: Provides a straightforward, two-tab Gradio interface that separates the document ingestion setup from the querying environment.
 
 ### Installation
+**Note**: This project was developed and tested using Python 3.12.2. It is highly recommended to use this version to avoid dependency conflicts, particularly with greenlet and langchain components.
+
 1. Clone and Environment Setup
 ```{bash}
 git clone https://github.com/eliotjmartin/ai_pdf_assistant.git
@@ -24,12 +35,6 @@ myenv\Scripts\activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
-Known Installation Issue: Greenlet / C++ Error
-If you are on Windows using Python 3.9, the installation of langchain-community may fail while building the greenlet wheel with a "Microsoft Visual C++ 14.0 or greater is required" error.
-
-I fixed this by installing full Microsoft C++ Build Tools (Click [here](https://visualstudio.microsoft.com/visual-cpp-build-tools/) to view build tools). 
-
 3. Environment Variables
 
 Create a .env file in the root directory:
@@ -54,4 +59,5 @@ python app/app.py
 - app/app.py: Main entry point and user interface
 - src/ingest.py: Logic for PDF processing and vector database upserting
 - src/retrieve_and_answer.py: Logic for context retrieval and LLM response generation
+- src/evaluate.py: Implementation of the Ragas-based evaluation pipeline using an "LLM-as-a-judge" approach.
 - src/prompts.py: Central location for all prompts used in the RAG system

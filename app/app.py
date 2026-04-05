@@ -15,6 +15,7 @@ sys.path.append(str(root_path))
 try:
     from src.ingest import ingest_pdf
     from src.retrieve_and_answer import retrieve_and_answer
+    from src.evaluate import run_eval
 except ImportError as e:
     print(f"Error: Could not find src modules. Ensure your directory structure is correct. {e}")
     sys.exit(1)
@@ -33,16 +34,25 @@ def process_upload(file_obj):
 def chat_logic(query):
     """Handles the RAG retrieval and LLM answering."""
     if not query.strip():
-        return "Please enter a question.", "No sources found."
+        return "Please enter a question.", "No sources found.", "N/A"
     try:
-        # calls logic which returns (answer, sources_string)
-        answer, sources = retrieve_and_answer(query)
-        return answer, sources
+        # generate answers
+        answer, sources, _ = retrieve_and_answer(query)
+        
+        # evaluate generated answer 
+        eval_results = run_eval(query)
+        
+        # format results
+        faithfulness_score = eval_results['faithfulness'][0]
+        relevancy_score = eval_results['answer_relevancy'][0]
+        metrics_text = f"Faithfulness: {faithfulness_score:.2f}\nRelevancy: {relevancy_score:.2f}"
+        
+        return answer, sources, metrics_text
     except Exception as e:
-        return f"Error during retrieval: {str(e)}", "N/A"
+        return f"Error: {str(e)}", "N/A", "Eval Failed"
 
-# sets the aesthetic
-with gr.Blocks(theme=gr.themes.Soft(), title="RAG Explorer") as demo:
+# sets the aesthetic 
+with gr.Blocks() as demo:
     gr.Markdown("# AI PDF Assistant")
     gr.Markdown("Upload a PDF to the system, then ask questions based on its content.")
 
@@ -77,16 +87,21 @@ with gr.Blocks(theme=gr.themes.Soft(), title="RAG Explorer") as demo:
                     ask_btn = gr.Button("Search Knowledge Base", variant="primary")
                 
                 with gr.Column(scale=2):
-                    answer_out = gr.Textbox(label="AI Answer", lines=8, show_copy_button=True)
-                    sources_out = gr.Textbox(label="Sources Used", lines=3)
+                    answer_out = gr.Textbox(label="AI Answer", lines=7)
+                    sources_out = gr.Textbox(label="Sources Used", lines=2)
+                    metrics_out = gr.Textbox(label="Reference-Free Evaluation", lines=1)
 
             ask_btn.click(
                 fn=chat_logic,
                 inputs=[query_input],
-                outputs=[answer_out, sources_out]  # 2 values returned by chat_logic
+                outputs=[answer_out, sources_out, metrics_out]  # 3 values returned by chat_logic
             )
 
-# 5. EXECUTION
 if __name__ == "__main__":
     print("Starting Gradio Server...")
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    demo.launch(
+        server_name="0.0.0.0", 
+        server_port=7860, 
+        share=False,
+        theme=gr.themes.Soft()
+    )

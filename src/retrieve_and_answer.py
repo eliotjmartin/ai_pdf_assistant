@@ -1,29 +1,52 @@
 import os
 from openai import OpenAI
-from langchain_openai import OpenAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
+from pinecone import Pinecone
 from src.prompts import SYSTEM_PROMPT, RETRIEVAL_PROMPT_TEMPLATE
 
 INDEX_NAME = os.getenv("PINECONE_INDEX")  # the name of the database
 MODEL_NAME = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-client = OpenAI()
+
+# initialize native clients
+openai_client = OpenAI()
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 def retrieve_and_answer(question: str):
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")  # turns question into numbers
-    vectorstore = PineconeVectorStore(index_name=INDEX_NAME, embedding=embeddings) # points langchain to pinecone db
+    index = pc.Index(INDEX_NAME)
 
-    # takes question, turns it into a vector, and finds the 4 most similar chunks 
-    # of text (k=4) stored in pinecone db
-    docs = vectorstore.similarity_search(question, k=4)
+    # takes question, turns it into a vector
+    embed_response = openai_client.embeddings.create(
+        input=question,
+        model="text-embedding-3-small"
+    )
+    query_vector = embed_response.data[0].embedding
+
+    # finds the 4 most similar chunks of text (k=4) stored in pinecone db
+    search_results = index.query(
+        vector=query_vector,
+        top_k=4,
+        include_metadata=True # tells Pinecone to return the actual text chunks
+    )
     
-    # combine text chunks 
-    context_text = "\n\n".join([d.page_content for d in docs])
+    docs = search_results.matches
+
+    # extract raw text chunks and sources from Pinecone metadata
+    raw_contexts = []
+    sources = []
     
-    # get sources with page numbers for each doc in docs
-    sources = list(set(
-        (d.metadata.get("source", "Unknown"), d.metadata.get("page", "Unknown"))
-        for d in docs
-    ))
+    for match in docs:
+        chunk_text = match.metadata.get("text", "")
+        raw_contexts.append(chunk_text)
+        
+        # get sources with page numbers
+        src = match.metadata.get("source", "Unknown")
+        page = match.metadata.get("page", "Unknown")
+        sources.append((src, page))
+    
+    # deduplicate sources
+    sources = list(set(sources))
+
+    # combine text chunks
+    context_text = "\n\n".join(raw_contexts)
     
     # .format() replaces placeholders with below values
     prompt = RETRIEVAL_PROMPT_TEMPLATE.format(
@@ -32,7 +55,7 @@ def retrieve_and_answer(question: str):
     )
 
     # call openai's chat completions API to write a human answer
-    response = client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT}, # define behavior rules
@@ -48,7 +71,7 @@ def retrieve_and_answer(question: str):
     source_list = []
     for src, page in sources:
         if isinstance(page, float):
-            page=round(page) 
+            page = round(page) 
             source = f"- {src} (page {page + 1})" # 0 based indexing
         elif isinstance(page, int):
             source = f"- {src} (page {page + 1})" # 0 based indexing
@@ -58,4 +81,5 @@ def retrieve_and_answer(question: str):
     
     source_list_string = "\n".join(source_list) # join sources with newline
     
-    return answer, f"Sources:\n{source_list_string}"
+    # return the raw list of strings for Ragas evaluation
+    return answer, f"Sources:\n{source_list_string}", raw_contexts
