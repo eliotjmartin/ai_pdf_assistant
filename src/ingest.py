@@ -21,7 +21,7 @@ if not pc.has_index(INDEX_NAME):
         metric="cosine",  # how similarity between vectors is calculated
         spec=ServerlessSpec(
             cloud=os.getenv("PINECONE_CLOUD", "aws"), 
-            region=os.getenv("PINECONE_ENV", "us-east-1")
+            region=os.getenv("PINECONE_REGION", "us-east-1")
         )
     )
     
